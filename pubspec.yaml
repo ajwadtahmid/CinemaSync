@@ -1,5 +1,5 @@
 name: cinema_sync
-description: "A new Flutter project."
+description: "A local-first movie and TV tracker with a swipe-based discovery deck. No accounts, no cloud copy — your library lives on your device."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -34,6 +34,21 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  flutter_riverpod: ^3.4.2
+  riverpod_annotation: ^4.0.6
+  go_router: ^17.5.0
+  drift: ^2.34.3
+  path_provider: ^2.1.6
+  path: ^1.9.1
+  dio: ^5.11.0
+  cached_network_image: ^3.4.1
+  appinio_swiper: ^2.1.1
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
+  csv: ^8.0.0
+  file_picker: ^12.0.0
+  share_plus: ^13.3.0
+  drift_flutter: ^0.3.1
 
 dev_dependencies:
   flutter_test:
@@ -45,6 +60,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  build_runner: ^2.16.0
+  drift_dev: ^2.34.5
+  # Pinned to a 4.x prerelease deliberately: drift_dev requires analyzer ^9,
+  # and stable freezed (3.2.5) caps at analyzer ^8. Revisit when freezed 4.0.0
+  # goes stable.
+  freezed: ^4.0.0-dev.3
+  json_serializable: ^6.14.1
+  riverpod_generator: ^4.0.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -56,6 +79,17 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/avatars/
+
+  fonts:
+    # Inter (variable) bundled for an offline, no-runtime-fetch premium UI type.
+    # The single variable file covers all weights via the `wght` axis. Bundling
+    # rather than fetching also keeps the privacy claim intact: no font CDN.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
