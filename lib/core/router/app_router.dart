@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/catalog/presentation/catalog_screen.dart';
 import '../../features/placeholder_screen.dart';
+import '../../features/title_detail/presentation/title_detail_screen.dart';
+import '../../shared/models/media_type.dart';
+import 'routes.dart';
 
 /// The four top-level destinations.
 ///
@@ -66,11 +70,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppTab.search.path,
-              builder: (_, _) => const PlaceholderScreen(
-                title: 'Search',
-                icon: Icons.search_outlined,
-                message: 'Search the full TMDB catalogue for movies and TV.',
-              ),
+              builder: (_, _) => const CatalogScreen(),
             ),
           ],
         ),
@@ -89,6 +89,31 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+
+    // Top level rather than inside a branch: a title detail is pushed over the
+    // whole shell, including the nav bar, and returns to whichever tab opened
+    // it.
+    GoRoute(
+      path: titleDetailPattern,
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '');
+        final rawType = state.pathParameters['mediaType'];
+
+        // A hand-typed or stale deep link should not crash the app.
+        if (id == null || (rawType != 'movie' && rawType != 'tv')) {
+          return const PlaceholderScreen(
+            title: 'Not found',
+            icon: Icons.help_outline,
+            message: 'That link does not point to a title.',
+          );
+        }
+
+        return TitleDetailScreen(
+          id: id,
+          mediaType: MediaType.fromTmdb(rawType),
+        );
+      },
     ),
   ],
 );

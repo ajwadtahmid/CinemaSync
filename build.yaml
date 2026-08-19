@@ -1,0 +1,24 @@
+targets:
+  $default:
+    # Codegen only ever runs over real source. extra/salvage is reference code
+    # from the previous build and is deliberately never compiled — the
+    # analyzer already excludes it, but that setting does not reach builders.
+    sources:
+      - lib/**
+      - test/**
+      - pubspec.yaml
+    builders:
+      drift_dev:
+        options:
+          # Store timestamps as ISO-8601 UTC text rather than Unix seconds.
+          #
+          # With the integer form, drift reads values back as *local*
+          # DateTimes — the instant is correct but `isUtc` is false. This
+          # app's export format is a public contract specified in UTC, and §5
+          # of the plan says all timestamps are stored as UTC, so the storage
+          # layer should not be the thing that quietly reintroduces a
+          # timezone.
+          #
+          # Set while schemaVersion is still 1 and nothing has shipped.
+          # Changing it after release would be a genuine data migration.
+          store_date_time_values_as_text: true

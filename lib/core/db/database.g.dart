@@ -4904,6 +4904,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       result: [TableUpdate('matches', kind: UpdateKind.delete)],
     ),
   ]);
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $$TitlesTableCreateCompanionBuilder =
