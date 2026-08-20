@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:cinema_sync/core/config/app_config.dart';
+import 'package:cinema_sync/core/network/dio_client.dart';
 import 'package:cinema_sync/core/network/tmdb_api.dart';
 import 'package:cinema_sync/shared/models/media_type.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Serves canned JSON for a given path, so parsing is tested without a network
@@ -325,6 +328,23 @@ void main() {
           reason: 'the proxy must not be able to identify a caller',
         );
       }
+    });
+
+    test('the real dio provider carries the shared client token', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final headers = container.read(tmdbDioProvider).options.headers;
+
+      expect(
+        headers['X-CinemaSync-Token'],
+        equals(AppConfig.clientToken),
+        reason: 'the proxy rejects unauthenticated callers with 401',
+      );
+      // Static and shared: the token gatekeeps the proxy without letting it
+      // tell two installs apart. A per-install value here would be an
+      // identifier and would break the privacy invariant above.
+      expect(AppConfig.clientToken, isNotEmpty);
     });
 
     test('never targets api.themoviedb.org directly', () async {

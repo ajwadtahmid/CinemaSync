@@ -20,6 +20,11 @@ final proxyBaseUrlProvider = Provider<String>((ref) => AppConfig.proxyBaseUrl);
 ///     session, cookie, or auth header is sent — so the proxy cannot correlate
 ///     two requests as the same person even if it wanted to. Anything added to
 ///     `headers` below must be justified against that.
+///
+/// `X-CinemaSync-Token` is the one exception, and it does not violate (2):
+/// every install sends the identical static value from [AppConfig.clientToken],
+/// so it gatekeeps the proxy against randoms who find the URL without
+/// distinguishing one caller from another.
 final tmdbDioProvider = Provider<Dio>((ref) {
   final baseUrl = ref.watch(proxyBaseUrlProvider);
 
@@ -30,7 +35,10 @@ final tmdbDioProvider = Provider<Dio>((ref) {
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 20),
       responseType: ResponseType.json,
-      headers: const {'Accept': 'application/json'},
+      headers: const {
+        'Accept': 'application/json',
+        'X-CinemaSync-Token': AppConfig.clientToken,
+      },
     ),
   );
 
