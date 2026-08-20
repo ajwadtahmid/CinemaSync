@@ -52,6 +52,11 @@ _TitleDetail _$TitleDetailFromJson(Map<String, dynamic> json) => _TitleDetail(
   keywords:
       (json['keywords'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const <String>[],
+  seasons:
+      (json['seasons'] as List<dynamic>?)
+          ?.map((e) => TvSeason.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <TvSeason>[],
 );
 
 Map<String, dynamic> _$TitleDetailToJson(_TitleDetail instance) =>
@@ -75,6 +80,7 @@ Map<String, dynamic> _$TitleDetailToJson(_TitleDetail instance) =>
       'recommendations': instance.recommendations,
       'similar': instance.similar,
       'keywords': instance.keywords,
+      'seasons': instance.seasons,
     };
 
 const _$MediaTypeEnumMap = {MediaType.movie: 'movie', MediaType.tv: 'tv'};

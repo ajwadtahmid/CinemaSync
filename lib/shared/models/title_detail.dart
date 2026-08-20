@@ -4,6 +4,7 @@ import 'cast_member.dart';
 import 'genre.dart';
 import 'media_type.dart';
 import 'title_summary.dart';
+import 'tv_season.dart';
 import 'video.dart';
 import 'watch_provider.dart';
 
@@ -41,6 +42,10 @@ abstract class TitleDetail with _$TitleDetail {
     @Default(<TitleSummary>[]) List<TitleSummary> recommendations,
     @Default(<TitleSummary>[]) List<TitleSummary> similar,
     @Default(<String>[]) List<String> keywords,
+
+    /// TV only. Present in the base `/tv/{id}` payload with no extra request,
+    /// so it costs nothing to carry even when unused.
+    @Default(<TvSeason>[]) List<TvSeason> seasons,
   }) = _TitleDetail;
 
   const TitleDetail._();
@@ -63,6 +68,14 @@ abstract class TitleDetail with _$TitleDetail {
         (json['episode_run_time'] as List).isNotEmpty) {
       runtime = ((json['episode_run_time'] as List).first as num).toInt();
     }
+
+    final seasons = (json['seasons'] as List<dynamic>?)
+            ?.map((e) => TvSeason.fromTmdb(e as Map<String, dynamic>))
+            // Season 0 is TMDB's "Specials" bucket; keep it out of the main
+            // list rather than confusing it with a real first season.
+            .where((s) => s.seasonNumber > 0)
+            .toList() ??
+        const <TvSeason>[];
 
     final genres = (json['genres'] as List<dynamic>?)
             ?.map((e) => Genre.fromJson(e as Map<String, dynamic>))
@@ -169,6 +182,7 @@ abstract class TitleDetail with _$TitleDetail {
       recommendations: parseSummaries(json['recommendations']),
       similar: parseSummaries(json['similar']),
       keywords: keywords,
+      seasons: seasons,
     );
   }
 

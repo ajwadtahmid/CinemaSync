@@ -5,6 +5,7 @@ import '../../shared/models/genre.dart';
 import '../../shared/models/media_type.dart';
 import '../../shared/models/title_detail.dart';
 import '../../shared/models/title_summary.dart';
+import '../../shared/models/tv_episode.dart';
 import 'dio_client.dart';
 
 /// A thin, typed client over the TMDB endpoints the app uses, via the proxy.
@@ -186,6 +187,22 @@ class TmdbApi {
       );
     }
     return null;
+  }
+
+  // ---- tv seasons ----
+
+  /// Episodes for one season of a TV show. Seasons themselves come from
+  /// [TitleDetail.seasons] — already present in the base `/tv/{id}` payload —
+  /// so this is only needed once a specific season is opened.
+  Future<List<TvEpisode>> tvSeasonEpisodes(int tvId, int seasonNumber) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/tv/$tvId/season/$seasonNumber',
+    );
+    final episodes = (res.data?['episodes'] as List<dynamic>?) ?? const [];
+    return episodes
+        .whereType<Map<String, dynamic>>()
+        .map(TvEpisode.fromTmdb)
+        .toList();
   }
 
   // ---- genres ----

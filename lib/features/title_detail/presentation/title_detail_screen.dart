@@ -17,6 +17,11 @@ import '../../../shared/widgets/app_loader.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/tmdb_attribution.dart';
 import '../../catalog/presentation/poster_rail.dart';
+import '../../episodes/presentation/season_list.dart';
+import '../../library/application/library_providers.dart';
+import '../../library/data/library_repository.dart';
+import '../../library/presentation/entry_detail_sheet.dart';
+import '../../lists/presentation/add_to_list_sheet.dart';
 import '../application/title_detail_providers.dart';
 
 /// Everything TMDB knows about one title.
@@ -81,13 +86,13 @@ class _DetailScaffold extends StatelessWidget {
   }
 }
 
-class _DetailBody extends StatelessWidget {
+class _DetailBody extends ConsumerWidget {
   const _DetailBody({required this.title});
 
   final TitleDetail title;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final backdrop = TmdbImage.backdrop(title.backdropPath);
 
@@ -123,7 +128,29 @@ class _DetailBody extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: AppSpacing.lg),
-                const _AddToLibraryButton(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _AddToLibraryButton(
+                        id: title.id,
+                        mediaType: title.mediaType,
+                        title: title.title,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton(
+                      tooltip: 'Add to list',
+                      icon: const Icon(Icons.playlist_add),
+                      onPressed: () => showAddToListSheet(
+                        context,
+                        id: title.id,
+                        mediaType: title.mediaType,
+                        title: title.title,
+                      ),
+                    ),
+                    _DismissButton(id: title.id, mediaType: title.mediaType),
+                  ],
+                ),
                 if (title.genres.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
                   Wrap(
@@ -167,6 +194,10 @@ class _DetailBody extends StatelessWidget {
         ),
         if (title.cast.isNotEmpty)
           SliverToBoxAdapter(child: _CastRail(cast: title.cast)),
+        if (title.mediaType == MediaType.tv && title.seasons.isNotEmpty)
+          SliverToBoxAdapter(
+            child: SeasonList(tvId: title.id, seasons: title.seasons),
+          ),
         if (title.similar.isNotEmpty)
           SliverToBoxAdapter(
             child: PosterRail(
@@ -251,21 +282,71 @@ class _MetaRow extends StatelessWidget {
   }
 }
 
-/// Present but inert until Phase 2 builds the library it would write to.
-/// Showing it disabled is honest about what is coming; hiding it would make
-/// the screen rearrange itself later.
-class _AddToLibraryButton extends StatelessWidget {
-  const _AddToLibraryButton();
+/// Adds the title to the watchlist, or — once tracked — opens the entry
+/// editor so status/rating/notes are one tap away rather than a second trip
+/// through the library screen.
+class _AddToLibraryButton extends ConsumerWidget {
+  const _AddToLibraryButton({
+    required this.id,
+    required this.mediaType,
+    required this.title,
+  });
+
+  final int id;
+  final MediaType mediaType;
+  final String title;
 
   @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Available once the library lands',
-      child: OutlinedButton.icon(
-        onPressed: null,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entryAsync =
+        ref.watch(libraryEntryProvider((id: id, mediaType: mediaType)));
+    final entry = entryAsync.value;
+
+    if (entry == null) {
+      return OutlinedButton.icon(
+        onPressed: () => ref
+            .read(libraryRepositoryProvider)
+            .add(id, mediaType),
         icon: const Icon(Icons.add, size: 18),
         label: const Text('Add to library'),
+      );
+    }
+
+    return OutlinedButton.icon(
+      onPressed: () => showEntryDetailSheet(
+        context,
+        id: id,
+        mediaType: mediaType,
+        title: title,
       ),
+      icon: const Icon(Icons.check, size: 18),
+      label: Text(entry.status.label),
+    );
+  }
+}
+
+/// The permanent "never show me this" action. Distinct from removing a
+/// library entry: dismissing works on titles that were never tracked at all,
+/// and excludes them from every future Discover deck.
+class _DismissButton extends ConsumerWidget {
+  const _DismissButton({required this.id, required this.mediaType});
+
+  final int id;
+  final MediaType mediaType;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDismissed =
+        ref.watch(isDismissedProvider((id: id, mediaType: mediaType))).value ??
+            false;
+    final repo = ref.read(libraryRepositoryProvider);
+
+    return IconButton(
+      tooltip: isDismissed ? 'Undo dismiss' : 'Never show me this',
+      icon: Icon(isDismissed ? Icons.visibility_off : Icons.visibility_off_outlined),
+      onPressed: () => isDismissed
+          ? repo.undismiss(id, mediaType)
+          : repo.dismiss(id, mediaType),
     );
   }
 }

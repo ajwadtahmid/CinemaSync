@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/catalog/presentation/catalog_screen.dart';
+import '../../features/library/presentation/library_screen.dart';
+import '../../features/lists/presentation/list_detail_screen.dart';
+import '../../features/lists/presentation/lists_screen.dart';
 import '../../features/placeholder_screen.dart';
 import '../../features/title_detail/presentation/title_detail_screen.dart';
 import '../../shared/models/media_type.dart';
@@ -56,13 +59,30 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppTab.library.path,
-              builder: (_, _) => const PlaceholderScreen(
-                title: 'Library',
-                icon: Icons.video_library_outlined,
-                message:
-                    'Your watchlist, ratings, custom lists and buddy matches '
-                    'live here — on this device, and nowhere else.',
-              ),
+              builder: (_, _) => const LibraryScreen(),
+              routes: [
+                GoRoute(
+                  path: 'lists',
+                  builder: (_, _) => const ListsScreen(),
+                  routes: [
+                    GoRoute(
+                      path: ':id',
+                      builder: (context, state) {
+                        final id =
+                            int.tryParse(state.pathParameters['id'] ?? '');
+                        if (id == null) {
+                          return const PlaceholderScreen(
+                            title: 'Not found',
+                            icon: Icons.help_outline,
+                            message: 'That link does not point to a list.',
+                          );
+                        }
+                        return ListDetailScreen(listId: id);
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),

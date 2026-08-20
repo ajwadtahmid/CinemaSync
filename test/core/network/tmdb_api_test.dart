@@ -228,6 +228,25 @@ void main() {
       expect(detail.title, 'Breaking Bad');
     });
 
+    test('parses seasons and drops season 0 (Specials)', () async {
+      final adapter = _StubAdapter({
+        '/tv/1396': {
+          'id': 1396,
+          'name': 'Breaking Bad',
+          'seasons': [
+            {'season_number': 0, 'name': 'Specials', 'episode_count': 3},
+            {'season_number': 1, 'name': 'Season 1', 'episode_count': 7},
+            {'season_number': 2, 'name': 'Season 2', 'episode_count': 13},
+          ],
+        },
+      });
+
+      final detail = await _apiWith(adapter).detail(1396, MediaType.tv);
+
+      expect(detail.seasons.map((s) => s.seasonNumber), [1, 2]);
+      expect(detail.seasons.first.episodeCount, 7);
+    });
+
     test('requests every append_to_response section in one round trip',
         () async {
       final adapter = _StubAdapter({
@@ -320,6 +339,35 @@ void main() {
         adapter.requests.single.uri.toString(),
         isNot(contains('api.themoviedb.org')),
       );
+    });
+  });
+
+  group('tv season episodes', () {
+    test('parses a season\'s episode list', () async {
+      final adapter = _StubAdapter({
+        '/tv/1396/season/1': {
+          'episodes': [
+            {
+              'id': 1,
+              'episode_number': 1,
+              'name': 'Pilot',
+              'runtime': 58,
+            },
+            {
+              'id': 2,
+              'episode_number': 2,
+              'name': "Cat's in the Bag...",
+              'runtime': 48,
+            },
+          ],
+        },
+      });
+
+      final episodes = await _apiWith(adapter).tvSeasonEpisodes(1396, 1);
+
+      expect(episodes.map((e) => e.episodeNumber), [1, 2]);
+      expect(episodes.first.name, 'Pilot');
+      expect(episodes.first.runtime, 58);
     });
   });
 }

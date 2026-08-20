@@ -8,7 +8,10 @@ import '../../shared/models/entry_status.dart';
 import '../../shared/models/list_sort_preference.dart';
 import '../../shared/models/media_type.dart';
 import '../../shared/models/swipe_direction.dart';
+import 'daos/dismissed_dao.dart';
+import 'daos/episode_progress_dao.dart';
 import 'daos/library_dao.dart';
+import 'daos/lists_dao.dart';
 import 'daos/titles_dao.dart';
 import 'tables.dart';
 
@@ -34,7 +37,13 @@ part 'database.g.dart';
     Matches,
     Preferences,
   ],
-  daos: [TitlesDao, LibraryDao],
+  daos: [
+    TitlesDao,
+    LibraryDao,
+    DismissedDao,
+    EpisodeProgressDao,
+    ListsDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   /// Opens the on-disk database. Pass an executor to override — tests use
